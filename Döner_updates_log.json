@@ -1,1 +1,11 @@
-
+{
+  "latest": "v0.1",
+  "releases": [
+    {
+      "version": "v0.1",
+      "sha": "09c85d8f69a92bba31db63ecb132a3b2cd982941",
+      "size": 10280960,
+      "published": "2026-07-21T20:31:20Z"
+    }
+  ]
+}
