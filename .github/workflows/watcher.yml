@@ -1,0 +1,50 @@
+name: Roblox Version Watcher
+
+# Ersetzt den 24/7-Pi. Laeuft geplant auf GitHub-Servern und schreibt die
+# Ergebnisse per Contents-API zurueck ins EIGENE Repo - mit dem eingebauten
+# GITHUB_TOKEN. Kein PAT, kein Secret noetig.
+
+on:
+  schedule:
+    # Alle 10 Minuten. Kleiner geht in Actions nicht (Minimum 5 min), und
+    # geplante Laeufe koennen bei GitHub-Last ein paar Minuten spaeter kommen.
+    - cron: "*/10 * * * *"
+  workflow_dispatch:        # Knopf zum manuellen Ausloesen im Actions-Tab
+
+# Schreibrecht aufs eigene Repo fuer den eingebauten Token.
+permissions:
+  contents: write
+
+# Nie zwei Laeufe gleichzeitig; einen wartenden ueberspringen.
+concurrency:
+  group: rbx-watcher
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # GUID -> lesbare Version ueber Laeufe hinweg merken. Rollierender Key:
+      # stellt den letzten Stand wieder her und legt am Ende einen neuen ab.
+      - name: Restore version cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: guidmap-${{ github.run_id }}
+          restore-keys: guidmap-
+
+      - name: Run watcher (once)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOENER_CACHE: ${{ github.workspace }}/.cache/versions.json
+        run: |
+          mkdir -p .cache
+          python .github/scripts/rbx_version_watcher.py --once -v
