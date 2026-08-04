@@ -1,5 +1,5 @@
 {
-  "latest": "v0.9",
+  "latest": "v0.10",
   "releases": [
     {
       "version": "v0.1",
@@ -54,6 +54,12 @@
       "sha": "38c8c8fc47fb11d491b20fbb665fc072acbd4a10",
       "size": 12140032,
       "published": "2026-08-02T20:21:55Z"
+    },
+    {
+      "version": "v0.10",
+      "sha": "029fe857747a75db0bad3e5519ccea59fc5afd09",
+      "size": 12132864,
+      "published": "2026-08-04T19:44:23Z"
     }
   ]
 }
