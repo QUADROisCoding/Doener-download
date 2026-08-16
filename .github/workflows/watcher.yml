@@ -1,33 +1,13 @@
 name: Roblox Version Watcher
 
-# Ersetzt den 24/7-Pi. Laeuft geplant auf GitHub-Servern und schreibt die
-# Ergebnisse per Contents-API zurueck ins EIGENE Repo - mit dem eingebauten
-# GITHUB_TOKEN. Kein PAT noetig.
-#
-# Fuer die Discord-Meldungen kommt EIN Secret dazu:
-#   Settings -> Secrets and variables -> Actions -> New repository secret
-#     Name:  DISCORD_WEBHOOK
-#     Value: die Webhook-URL aus Discord (Kanal -> Bearbeiten -> Integrationen)
-#
-# Optional dazu, damit neue Builds eine Rolle anpingen:
-#     Name:  DISCORD_ROLE_ID
-#     Value: die Rollen-ID (Discord: Entwicklermodus an, Rolle -> ID kopieren)
-#
-# Ohne das Secret laeuft alles wie bisher, nur eben stumm - der Watcher prueft
-# das beim Start und sagt es im Log.
-
 on:
   schedule:
-    # Alle 10 Minuten. Kleiner geht in Actions nicht (Minimum 5 min), und
-    # geplante Laeufe koennen bei GitHub-Last ein paar Minuten spaeter kommen.
     - cron: "*/10 * * * *"
-  workflow_dispatch:        # Knopf zum manuellen Ausloesen im Actions-Tab
+  workflow_dispatch:
 
-# Schreibrecht aufs eigene Repo fuer den eingebauten Token.
 permissions:
   contents: write
 
-# Nie zwei Laeufe gleichzeitig; einen wartenden ueberspringen.
 concurrency:
   group: rbx-watcher
   cancel-in-progress: false
@@ -44,8 +24,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      # GUID -> lesbare Version ueber Laeufe hinweg merken. Rollierender Key:
-      # stellt den letzten Stand wieder her und legt am Ende einen neuen ab.
       - name: Restore version cache
         uses: actions/cache@v4
         with:
@@ -57,8 +35,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOENER_CACHE: ${{ github.workspace }}/.cache/versions.json
-          # Die Webhook-URL bleibt im Secret-Store: sie steht nie im Repo, wird
-          # in Logs automatisch maskiert, und das Script gibt sie selbst nie aus.
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_ROLE_ID: ${{ secrets.DISCORD_ROLE_ID }}
         run: |
