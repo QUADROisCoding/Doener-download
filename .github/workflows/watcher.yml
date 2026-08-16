@@ -2,7 +2,19 @@ name: Roblox Version Watcher
 
 # Ersetzt den 24/7-Pi. Laeuft geplant auf GitHub-Servern und schreibt die
 # Ergebnisse per Contents-API zurueck ins EIGENE Repo - mit dem eingebauten
-# GITHUB_TOKEN. Kein PAT, kein Secret noetig.
+# GITHUB_TOKEN. Kein PAT noetig.
+#
+# Fuer die Discord-Meldungen kommt EIN Secret dazu:
+#   Settings -> Secrets and variables -> Actions -> New repository secret
+#     Name:  DISCORD_WEBHOOK
+#     Value: die Webhook-URL aus Discord (Kanal -> Bearbeiten -> Integrationen)
+#
+# Optional dazu, damit neue Builds eine Rolle anpingen:
+#     Name:  DISCORD_ROLE_ID
+#     Value: die Rollen-ID (Discord: Entwicklermodus an, Rolle -> ID kopieren)
+#
+# Ohne das Secret laeuft alles wie bisher, nur eben stumm - der Watcher prueft
+# das beim Start und sagt es im Log.
 
 on:
   schedule:
@@ -45,6 +57,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOENER_CACHE: ${{ github.workspace }}/.cache/versions.json
+          # Die Webhook-URL bleibt im Secret-Store: sie steht nie im Repo, wird
+          # in Logs automatisch maskiert, und das Script gibt sie selbst nie aus.
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_ROLE_ID: ${{ secrets.DISCORD_ROLE_ID }}
         run: |
           mkdir -p .cache
           python .github/scripts/rbx_version_watcher.py --once -v
