@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch:
+    inputs:
+      test_discord:
+        description: "Post a test message to Discord instead of checking versions"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -31,12 +36,17 @@ jobs:
           key: guidmap-${{ github.run_id }}
           restore-keys: guidmap-
 
-      - name: Run watcher (once)
+      - name: Run watcher
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOENER_CACHE: ${{ github.workspace }}/.cache/versions.json
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_ROLE_ID: ${{ secrets.DISCORD_ROLE_ID }}
+          DISCORD_DOWNLOAD_CHANNEL_ID: ${{ secrets.DISCORD_DOWNLOAD_CHANNEL_ID }}
         run: |
           mkdir -p .cache
-          python .github/scripts/rbx_version_watcher.py --once -v
+          if [ "${{ github.event.inputs.test_discord }}" = "true" ]; then
+            python .github/scripts/rbx_version_watcher.py --test-discord
+          else
+            python .github/scripts/rbx_version_watcher.py --once -v
+          fi
