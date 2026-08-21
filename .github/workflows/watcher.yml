@@ -43,6 +43,11 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_ROLE_ID: ${{ secrets.DISCORD_ROLE_ID }}
           DISCORD_DOWNLOAD_CHANNEL_ID: ${{ secrets.DISCORD_DOWNLOAD_CHANNEL_ID }}
+          # Posting the build itself needs one of these two. A webhook made on
+          # the download channel is the simpler route; the bot token is the one
+          # that uses DISCORD_DOWNLOAD_CHANNEL_ID above.
+          DISCORD_DOWNLOAD_WEBHOOK: ${{ secrets.DISCORD_DOWNLOAD_WEBHOOK }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
         run: |
           mkdir -p .cache
           if [ "${{ github.event.inputs.test_discord }}" = "true" ]; then
