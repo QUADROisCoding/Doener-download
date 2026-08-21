@@ -47,6 +47,27 @@ DISCORD_WEBHOOK          = os.environ.get("DISCORD_WEBHOOK", "").strip()
 DISCORD_ROLE_ID          = os.environ.get("DISCORD_ROLE_ID", "").strip()
 DISCORD_DOWNLOAD_CHANNEL = os.environ.get("DISCORD_DOWNLOAD_CHANNEL_ID", "").strip()
 
+# Two ways to get the build itself into the download channel, because a webhook
+# can only ever post to the channel it was created for - the announcement
+# webhook cannot reach a second channel no matter what id we hand it.
+#
+#   DISCORD_DOWNLOAD_WEBHOOK - a webhook created ON the download channel.
+#                              Simplest: no bot, no permissions to grant.
+#   DISCORD_BOT_TOKEN        - a bot in the guild, which can post anywhere it
+#                              has Send Messages + Attach Files. This is the one
+#                              that actually uses DISCORD_DOWNLOAD_CHANNEL_ID.
+#
+# The webhook wins if both are set, being the cheaper path.
+DISCORD_DOWNLOAD_WEBHOOK = os.environ.get("DISCORD_DOWNLOAD_WEBHOOK", "").strip()
+DISCORD_BOT_TOKEN        = os.environ.get("DISCORD_BOT_TOKEN", "").strip()
+
+# Discord's attachment ceiling for a server with no boosts. Level 2 raises it to
+# 50 MiB and level 3 to 100 MiB, but assuming the floor means a build that grows
+# past it degrades to a link instead of silently failing to post.
+DISCORD_MAX_UPLOAD = 10 * 1024 * 1024
+
+RAW_EXE_URL = f"https://raw.githubusercontent.com/{REPO}/{BRANCH}/{quote(FILE_EXE)}"
+
 PRODUCT = "Döner"
 
 log = logging.getLogger("watcher")
@@ -128,6 +149,112 @@ def discord_notify(lines: list, *, ping: bool = False, dry_run: bool = False) ->
         except Exception as e:
             log.warning("Discord unreachable: %s", e)
             return
+
+
+def _multipart(payload: dict, filename: str, blob: bytes):
+    """Build a Discord v10 attachment body.
+
+    Discord wants the message as a `payload_json` field whose `attachments`
+    array declares each file by index, and the bytes as `files[N]`. Sending the
+    file without the matching `attachments` entry is accepted but drops the
+    filename, so both halves are always written together here.
+    """
+    boundary = "doener" + os.urandom(16).hex()
+    sep      = ("--" + boundary + "\r\n").encode()
+    out      = bytearray()
+
+    out += sep
+    out += b'Content-Disposition: form-data; name="payload_json"\r\n'
+    out += b"Content-Type: application/json\r\n\r\n"
+    out += json.dumps(payload).encode("utf-8")
+    out += b"\r\n"
+
+    out += sep
+    out += ('Content-Disposition: form-data; name="files[0]"; filename="%s"\r\n'
+            % filename.replace('"', "")).encode("utf-8")
+    out += b"Content-Type: application/octet-stream\r\n\r\n"
+    out += blob
+    out += b"\r\n"
+
+    out += ("--" + boundary + "--\r\n").encode()
+    return bytes(out), "multipart/form-data; boundary=" + boundary
+
+
+def _download_target():
+    """Where the build gets posted, and the headers that route it there."""
+    if DISCORD_DOWNLOAD_WEBHOOK:
+        return DISCORD_DOWNLOAD_WEBHOOK, {}
+    if DISCORD_BOT_TOKEN and DISCORD_DOWNLOAD_CHANNEL:
+        return (f"https://discord.com/api/v10/channels/{DISCORD_DOWNLOAD_CHANNEL}/messages",
+                {"Authorization": f"Bot {DISCORD_BOT_TOKEN}"})
+    return None, {}
+
+
+def post_build(blob: Optional[bytes], filename: str, content: str,
+               *, dry_run: bool = False) -> bool:
+    """Post the build to the download channel, as a file when that is possible.
+
+    Falls back to a plain link rather than posting nothing: an oversized build,
+    a missing token or a rejected upload should still leave people with a way to
+    get the update.
+    """
+    url, extra = _download_target()
+    if not url:
+        log.warning("no download route set - add DISCORD_DOWNLOAD_WEBHOOK or "
+                    "DISCORD_BOT_TOKEN so the build can be posted")
+        return False
+
+    attach = blob is not None and len(blob) <= DISCORD_MAX_UPLOAD
+    if blob is not None and not attach:
+        log.warning("%s is %s, over Discord's %s limit - posting a link instead",
+                    filename, human_size(len(blob)), human_size(DISCORD_MAX_UPLOAD))
+        content = content + "\n" + RAW_EXE_URL
+    elif blob is None:
+        content = content + "\n" + RAW_EXE_URL
+
+    payload = {"content": content, "allowed_mentions": {"parse": []}}
+    if DISCORD_DOWNLOAD_WEBHOOK:
+        payload["username"] = PRODUCT
+    if attach:
+        payload["attachments"] = [{"id": 0, "filename": filename}]
+
+    if dry_run:
+        log.info("[dry-run] would post to the download channel%s:\n%s",
+                 " with " + filename if attach else " (link only)", content)
+        return True
+
+    if attach:
+        body, ctype = _multipart(payload, filename, blob)
+    else:
+        body, ctype = json.dumps(payload).encode("utf-8"), "application/json"
+
+    for attempt in range(2):
+        try:
+            status, data = http(url, method="POST", body=body,
+                                headers={**extra, "Content-Type": ctype})
+            if status in (200, 204):
+                log.info("Discord: build posted to the download channel%s",
+                         " (" + human_size(len(blob)) + ")" if attach else " as a link")
+                return True
+            if status == 429 and attempt == 0:
+                try:
+                    wait = float(json.loads(data.decode("utf-8")).get("retry_after", 1))
+                except Exception:
+                    wait = 1.0
+                log.warning("Discord rate-limited, waiting %.1fs", min(wait, 10))
+                time.sleep(min(wait, 10))
+                continue
+            # 413 means the server's real ceiling is lower than we assumed, so
+            # retry once as a link rather than losing the release post.
+            if status == 413 and attach:
+                log.warning("Discord rejected the attachment (413) - retrying as a link")
+                return post_build(None, filename, content, dry_run=dry_run)
+            log.warning("Discord replied with HTTP %d - %s", status, data[:200])
+            return False
+        except Exception as e:
+            log.warning("Discord unreachable: %s", e)
+            return False
+    return False
 
 
 def human_size(n: int) -> str:
@@ -217,6 +344,20 @@ class GitHub:
         text = base64.b64decode(j.get("content", "")).decode("utf-8", "replace")
         self.state[path] = (j.get("sha"), text)
         return j.get("sha"), text
+
+    def blob(self, sha: str) -> bytes:
+        """Exact bytes behind one blob sha.
+
+        By sha rather than by path: raw.githubusercontent is CDN-cached for a
+        few minutes, so fetching by name right after a push can hand back the
+        build we are replacing. The sha is the one check_releases just saw.
+        """
+        url = f"{self.API}/repos/{self.repo}/git/blobs/{sha}"
+        status, data = http_retry(url, headers={**self._headers(),
+                                                "Accept": "application/vnd.github.raw"})
+        if status != 200:
+            raise RuntimeError(f"GET blob {sha[:10]}: HTTP {status} - {data[:200]!r}")
+        return data
 
     def put(self, path: str, text: str, message: str) -> bool:
         sha, cur = self.state.get(path, (None, None))
@@ -344,6 +485,25 @@ def check_releases(gh: GitHub) -> None:
                 "```",
                 (f"{PRODUCT} supports the roblox version 〘⚒️〙{sup_guid}" if sup_guid else None),
             ], ping=True, dry_run=gh.dry_run)
+
+            # The announcement points at the download channel, so put the build
+            # there straight after. Order matters: the pointer should not land
+            # before the thing it points at.
+            #
+            # A failure here is logged and swallowed - the release is already
+            # committed and announced, and losing that to an upload problem
+            # would be worse than a channel that is one post behind.
+            blob = None
+            try:
+                blob = gh.blob(sha)
+            except Exception as e:
+                log.warning("could not read %s for upload: %s", FILE_EXE, e)
+            try:
+                post_build(blob, FILE_EXE,
+                           f"**{PRODUCT} {version}**  -  {human_size(size)}",
+                           dry_run=gh.dry_run)
+            except Exception as e:
+                log.warning("build upload failed: %s", e)
 
 
 def check_once(gh: GitHub, cache: dict) -> None:
