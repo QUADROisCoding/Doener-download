@@ -1,6 +1,12 @@
 name: Roblox Version Watcher
 
 on:
+  # Every push to main, so publishing a build announces itself without anyone
+  # having to remember a manual dispatch. Safe from self-triggering: the watcher
+  # commits with the default GITHUB_TOKEN, and GitHub deliberately raises no
+  # workflow events for commits made with it.
+  push:
+    branches: [main]
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch:
