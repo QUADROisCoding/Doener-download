@@ -1,179 +1,173 @@
 {
-    "latest":  "v0.29",
-    "releases":  [
-                     {
-                         "version":  "v0.1",
-                         "sha":  "09c85d8f69a92bba31db63ecb132a3b2cd982941",
-                         "size":  10280960,
-                         "published":  "2026-07-21T20:31:20Z"
-                     },
-                     {
-                         "version":  "v0.2",
-                         "sha":  "21a304333e9c39c602547bf3bbcfc21420881219",
-                         "size":  10281472,
-                         "published":  "2026-07-26T15:46:03Z"
-                     },
-                     {
-                         "version":  "v0.3",
-                         "sha":  "caabd1bb439ffc29de1953eaf57218ec83091aca",
-                         "size":  10281984,
-                         "published":  "2026-07-26T17:10:56Z"
-                     },
-                     {
-                         "version":  "v0.4",
-                         "sha":  "3e13da753fb412c3802a92c442dfef8c77fc4c2c",
-                         "size":  10364416,
-                         "published":  "2026-07-27T15:38:42Z"
-                     },
-                     {
-                         "version":  "v0.5",
-                         "sha":  "48d8dadedbd23ee5a861953bdd4d13bd89c4fd4f",
-                         "size":  11724288,
-                         "published":  "2026-07-30T21:40:31Z"
-                     },
-                     {
-                         "version":  "v0.6",
-                         "sha":  "c239c4c1556835781a98808ba64ad1c023d6e9f2",
-                         "size":  11725824,
-                         "published":  "2026-07-30T22:22:12Z"
-                     },
-                     {
-                         "version":  "v0.7",
-                         "sha":  "65e48877df6702f903101e3b2396d8a93de6348c",
-                         "size":  12128256,
-                         "published":  "2026-08-01T22:01:47Z"
-                     },
-                     {
-                         "version":  "v0.8",
-                         "sha":  "f33220f96eb8cdd934ce856d1e1017eb6ce7c9e4",
-                         "size":  12121600,
-                         "published":  "2026-08-02T17:56:48Z"
-                     },
-                     {
-                         "version":  "v0.9",
-                         "sha":  "38c8c8fc47fb11d491b20fbb665fc072acbd4a10",
-                         "size":  12140032,
-                         "published":  "2026-08-02T20:21:55Z"
-                     },
-                     {
-                         "version":  "v0.10",
-                         "sha":  "029fe857747a75db0bad3e5519ccea59fc5afd09",
-                         "size":  12132864,
-                         "published":  "2026-08-04T19:44:23Z"
-                     },
-                     {
-                         "version":  "v0.11",
-                         "sha":  "89163d30178edf0804f5f6109a400066c6e70c8d",
-                         "size":  12186112,
-                         "published":  "2026-08-07T10:41:46Z"
-                     },
-                     {
-                         "version":  "v0.12",
-                         "sha":  "6dc98af5679b2c9cbade292de62c217ba4c03c68",
-                         "size":  12190720,
-                         "published":  "2026-08-07T11:29:38Z"
-                     },
-                     {
-                         "version":  "v0.13",
-                         "sha":  "757f0432fdae139e63a7dfd86c878c26bfdb5283",
-                         "size":  12234240,
-                         "published":  "2026-08-08T12:33:26Z"
-                     },
-                     {
-                         "version":  "v0.14",
-                         "sha":  "cbd10481434422d5ea91150a98a2c236a63d7b9f",
-                         "size":  12374528,
-                         "published":  "2026-08-08T12:47:09Z"
-                     },
-                     {
-                         "version":  "v0.15",
-                         "sha":  "881adb58258cc7698eb6918bed0446389d7e2de8",
-                         "size":  8242176,
-                         "published":  "2026-08-09T21:35:01Z"
-                     },
-                     {
-                         "version":  "v0.16",
-                         "sha":  "bcb45a0a45eade970af08e0046c42cd982c6e31f",
-                         "size":  8310784,
-                         "published":  "2026-08-11T02:26:30Z"
-                     },
-                     {
-                         "version":  "v0.17",
-                         "sha":  "9c28c24b9add0326c2e03ab8333d0f19add92a16",
-                         "size":  9262592,
-                         "published":  "2026-08-11T18:17:13Z"
-                     },
-                     {
-                         "version":  "v0.18",
-                         "sha":  "480771fda7d33182e4f2d785a4142defc114b98c",
-                         "size":  9277952,
-                         "published":  "2026-08-14T14:13:30Z"
-                     },
-                     {
-                         "version":  "v0.19",
-                         "sha":  "2f11c3b9c57c0d81cf6aa1c650dcbebe734777e2",
-                         "size":  9377792,
-                         "published":  "2026-08-15T20:05:13Z"
-                     },
-                     {
-                         "version":  "v0.20",
-                         "sha":  "c66135ba2e97ebcca38d32653a86af54da314262",
-                         "size":  9377280,
-                         "published":  "2026-08-16T19:33:49Z"
-                     },
-                     {
-                         "version":  "v0.21",
-                         "sha":  "03b5caf32c8a371ac117b1556e24ad2dfdd0add1",
-                         "size":  9377280,
-                         "published":  "2026-08-16T21:01:35Z"
-                     },
-                     {
-                         "version":  "v0.22",
-                         "sha":  "37a8b07b184d43e90e2a1e232fcce99d6b30324a",
-                         "size":  9435648,
-                         "published":  "2026-08-17T19:34:14Z"
-                     },
-                     {
-                         "version":  "v0.23",
-                         "sha":  "3ca027d3e5fa039dc8d4043b9d3b316a9a1b23ef",
-                         "size":  9470976,
-                         "published":  "2026-08-21T14:11:50Z"
-                     },
-                     {
-                         "version":  "v0.24",
-                         "sha":  "a5114a3c8e311b9118c075d1514d446096119df5",
-                         "size":  9477120,
-                         "published":  "2026-08-21T19:46:37Z"
-                     },
-                     {
-                         "version":  "v0.25",
-                         "sha":  "1b0dd1d6819912b6a88dd3a22b2e2214bc9b9cc2",
-                         "size":  9475072,
-                         "published":  "2026-08-21T20:06:35Z"
-                     },
-                     {
-                         "version":  "v0.26",
-                         "sha":  "bb85617e196f55649d7caca4e4d2bde8c9bb6df5",
-                         "size":  9364480,
-                         "published":  "2026-08-26T16:42:59Z"
-                     },
-                     {
-                         "version":  "v0.27",
-                         "sha":  "2d7988a52a1f8e000b51a16875739e75ee1f6b70",
-                         "size":  9364992,
-                         "published":  "2026-08-29T10:42:11Z"
-                     },
-                     {
-                         "version":  "v0.28",
-                         "sha":  "87f6c0687eb921a4b6575055735dd30db81dd39a",
-                         "size":  9451520,
-                         "published":  "2026-08-29T18:28:04Z"
-                     },
-                     {
-                         "version":  "v0.29",
-                         "sha":  "a2830496055ce7dcd37b9c90e1de2a60e6b58221",
-                         "size":  9453568,
-                         "published":  "2026-08-29T18:34:12Z"
-                     }
-                 ]
+  "latest": "v0.28",
+  "releases": [
+    {
+      "version": "v0.1",
+      "sha": "09c85d8f69a92bba31db63ecb132a3b2cd982941",
+      "size": 10280960,
+      "published": "2026-07-21T20:31:20Z"
+    },
+    {
+      "version": "v0.2",
+      "sha": "21a304333e9c39c602547bf3bbcfc21420881219",
+      "size": 10281472,
+      "published": "2026-07-26T15:46:03Z"
+    },
+    {
+      "version": "v0.3",
+      "sha": "caabd1bb439ffc29de1953eaf57218ec83091aca",
+      "size": 10281984,
+      "published": "2026-07-26T17:10:56Z"
+    },
+    {
+      "version": "v0.4",
+      "sha": "3e13da753fb412c3802a92c442dfef8c77fc4c2c",
+      "size": 10364416,
+      "published": "2026-07-27T15:38:42Z"
+    },
+    {
+      "version": "v0.5",
+      "sha": "48d8dadedbd23ee5a861953bdd4d13bd89c4fd4f",
+      "size": 11724288,
+      "published": "2026-07-30T21:40:31Z"
+    },
+    {
+      "version": "v0.6",
+      "sha": "c239c4c1556835781a98808ba64ad1c023d6e9f2",
+      "size": 11725824,
+      "published": "2026-07-30T22:22:12Z"
+    },
+    {
+      "version": "v0.7",
+      "sha": "65e48877df6702f903101e3b2396d8a93de6348c",
+      "size": 12128256,
+      "published": "2026-08-01T22:01:47Z"
+    },
+    {
+      "version": "v0.8",
+      "sha": "f33220f96eb8cdd934ce856d1e1017eb6ce7c9e4",
+      "size": 12121600,
+      "published": "2026-08-02T17:56:48Z"
+    },
+    {
+      "version": "v0.9",
+      "sha": "38c8c8fc47fb11d491b20fbb665fc072acbd4a10",
+      "size": 12140032,
+      "published": "2026-08-02T20:21:55Z"
+    },
+    {
+      "version": "v0.10",
+      "sha": "029fe857747a75db0bad3e5519ccea59fc5afd09",
+      "size": 12132864,
+      "published": "2026-08-04T19:44:23Z"
+    },
+    {
+      "version": "v0.11",
+      "sha": "89163d30178edf0804f5f6109a400066c6e70c8d",
+      "size": 12186112,
+      "published": "2026-08-07T10:41:46Z"
+    },
+    {
+      "version": "v0.12",
+      "sha": "6dc98af5679b2c9cbade292de62c217ba4c03c68",
+      "size": 12190720,
+      "published": "2026-08-07T11:29:38Z"
+    },
+    {
+      "version": "v0.13",
+      "sha": "757f0432fdae139e63a7dfd86c878c26bfdb5283",
+      "size": 12234240,
+      "published": "2026-08-08T12:33:26Z"
+    },
+    {
+      "version": "v0.14",
+      "sha": "cbd10481434422d5ea91150a98a2c236a63d7b9f",
+      "size": 12374528,
+      "published": "2026-08-08T12:47:09Z"
+    },
+    {
+      "version": "v0.15",
+      "sha": "881adb58258cc7698eb6918bed0446389d7e2de8",
+      "size": 8242176,
+      "published": "2026-08-09T21:35:01Z"
+    },
+    {
+      "version": "v0.16",
+      "sha": "bcb45a0a45eade970af08e0046c42cd982c6e31f",
+      "size": 8310784,
+      "published": "2026-08-11T02:26:30Z"
+    },
+    {
+      "version": "v0.17",
+      "sha": "9c28c24b9add0326c2e03ab8333d0f19add92a16",
+      "size": 9262592,
+      "published": "2026-08-11T18:17:13Z"
+    },
+    {
+      "version": "v0.18",
+      "sha": "480771fda7d33182e4f2d785a4142defc114b98c",
+      "size": 9277952,
+      "published": "2026-08-14T14:13:30Z"
+    },
+    {
+      "version": "v0.19",
+      "sha": "2f11c3b9c57c0d81cf6aa1c650dcbebe734777e2",
+      "size": 9377792,
+      "published": "2026-08-15T20:05:13Z"
+    },
+    {
+      "version": "v0.20",
+      "sha": "c66135ba2e97ebcca38d32653a86af54da314262",
+      "size": 9377280,
+      "published": "2026-08-16T19:33:49Z"
+    },
+    {
+      "version": "v0.21",
+      "sha": "03b5caf32c8a371ac117b1556e24ad2dfdd0add1",
+      "size": 9377280,
+      "published": "2026-08-16T21:01:35Z"
+    },
+    {
+      "version": "v0.22",
+      "sha": "37a8b07b184d43e90e2a1e232fcce99d6b30324a",
+      "size": 9435648,
+      "published": "2026-08-17T19:34:14Z"
+    },
+    {
+      "version": "v0.23",
+      "sha": "3ca027d3e5fa039dc8d4043b9d3b316a9a1b23ef",
+      "size": 9470976,
+      "published": "2026-08-21T14:11:50Z"
+    },
+    {
+      "version": "v0.24",
+      "sha": "a5114a3c8e311b9118c075d1514d446096119df5",
+      "size": 9477120,
+      "published": "2026-08-21T19:46:37Z"
+    },
+    {
+      "version": "v0.25",
+      "sha": "1b0dd1d6819912b6a88dd3a22b2e2214bc9b9cc2",
+      "size": 9475072,
+      "published": "2026-08-21T20:06:35Z"
+    },
+    {
+      "version": "v0.26",
+      "sha": "bb85617e196f55649d7caca4e4d2bde8c9bb6df5",
+      "size": 9364480,
+      "published": "2026-08-26T16:42:59Z"
+    },
+    {
+      "version": "v0.27",
+      "sha": "2d7988a52a1f8e000b51a16875739e75ee1f6b70",
+      "size": 9364992,
+      "published": "2026-08-29T10:42:11Z"
+    },
+    {
+      "version": "v0.28",
+      "sha": "87f6c0687eb921a4b6575055735dd30db81dd39a",
+      "size": 9451520,
+      "published": "2026-08-29T18:28:04Z"
+    }
+  ]
 }
