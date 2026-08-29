@@ -120,10 +120,21 @@ ORDER OF OPERATIONS
                 a script that returned OK can still have printed an error.
 
 REQUIREMENTS
-Roblox and Doener must already be running. The exec_* tools additionally need
-this MCP client to be running as administrator, because DonerExec.exe is
-elevated and its pipe refuses unelevated callers. "access denied" means exactly
-that and will not resolve on retry.
+Roblox and Doener must already be running. Both pipes are served by elevated
+processes, so this MCP client has to be running as administrator too. "access
+denied" means exactly that and will not resolve on retry.
+
+IF YOU CANNOT ELEVATE
+relay.py, next to this file, holds the elevation for you. Started ONCE with a
+UAC prompt, it then serves any request from an unelevated tool:
+
+    python relay.py --serve          # once, accept the prompt
+    python relay.py game_info        # afterwards, from anywhere, no prompt
+    python relay.py --stop           # when finished
+
+Use it when exec_* or explorer answer "access denied" and elevating the client
+is not an option. While it runs, anything on this account can reach the bridge
+through it, so stop it when done.
 
 USING explorer
 Pass one bridge command: ping, game_info, players, children <ref>, tree <ref>.
