@@ -23,8 +23,12 @@ BRANCH = "main"
 FILE_SUPPORTED = "supported_rbx_version.txt"
 FILE_CURRENT   = "current_rbx_version.txt"
 
-FILE_EXE      = "Döner.exe"
-FILE_RELEASES = "Döner_updates_log.json"
+FILE_EXE      = "Dopamine.exe"
+FILE_RELEASES = "Döner_updates_log.json"   # keeps its old name on purpose:
+# this is the release history, not branding. The watcher is its only writer and
+# announces only entries it wrote - renaming it without moving the file in the
+# same commit would start an empty log and re-announce versions that already
+# went out. Rename it and the file together, or leave it.
 
 URL_SUPPORTED = "https://offsets.imtheo.lol/roblox/version"
 URL_CURRENT   = "https://clientsettingscdn.roblox.com/v2/client-version/WindowsPlayer"
@@ -33,7 +37,7 @@ INTERVAL     = 60
 HTTP_TIMEOUT = 20
 HTTP_RETRIES = 3
 
-UA = "Doener-VersionWatcher/1.0 (+https://github.com/QUADROisCoding/Doener-download)"
+UA = "Dopamine-VersionWatcher/1.0 (+https://github.com/QUADROisCoding/Doener-download)"
 
 CACHE_PATH = Path(os.environ.get("DOENER_CACHE", str(Path.home() / ".doener_versions.json")))
 
@@ -68,7 +72,7 @@ DISCORD_MAX_UPLOAD = 10 * 1024 * 1024
 
 RAW_EXE_URL = f"https://raw.githubusercontent.com/{REPO}/{BRANCH}/{quote(FILE_EXE)}"
 
-PRODUCT = "Döner"
+PRODUCT = "Dopamine"
 
 log = logging.getLogger("watcher")
 
@@ -577,7 +581,7 @@ def check_once(gh: GitHub, cache: dict) -> None:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Roblox version watcher for the Doener loader")
+    ap = argparse.ArgumentParser(description="Roblox version watcher for the Dopamine loader")
     ap.add_argument("--interval", type=int, default=INTERVAL,
                     help=f"seconds between checks (default: {INTERVAL})")
     ap.add_argument("--once", action="store_true", help="check once, then exit")
