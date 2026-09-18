@@ -15,6 +15,10 @@ on:
         description: "Post a test message to Discord instead of checking versions"
         type: boolean
         default: false
+      post_build:
+        description: "Re-post the newest logged build to the download channel (no announcement)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -58,6 +62,9 @@ jobs:
           mkdir -p .cache
           if [ "${{ github.event.inputs.test_discord }}" = "true" ]; then
             python .github/scripts/rbx_version_watcher.py --test-discord
+          elif [ "${{ github.event.inputs.post_build }}" = "true" ]; then
+            python .github/scripts/rbx_version_watcher.py --post-build -v
           else
             python .github/scripts/rbx_version_watcher.py --once -v
           fi
+
