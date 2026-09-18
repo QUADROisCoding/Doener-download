@@ -242,8 +242,10 @@ def post_build(blob: Optional[bytes], filename: str, content: str,
             blob     = packed
             filename = filename.rsplit(".", 1)[0] + ".zip"
             attach   = True
-            content  = content + "  (zipped - Discord caps uploads at " \
-                     + human_size(DISCORD_MAX_UPLOAD) + ")"
+            # Deliberately NOT said in the message. The attachment is called
+            # Dopamine.zip, which already tells whoever downloads it the one
+            # thing they have to do differently. Why it is zipped is our
+            # problem and it does not belong in a release post.
         else:
             log.warning("%s is %s and still %s zipped, over Discord's %s limit "
                         "- posting a link instead", filename, human_size(len(blob)),
