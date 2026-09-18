@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import io
 import json
 import logging
 import os
@@ -12,6 +13,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Tuple
@@ -67,7 +69,11 @@ DISCORD_BOT_TOKEN        = os.environ.get("DISCORD_BOT_TOKEN", "").strip()
 
 # Discord's attachment ceiling for a server with no boosts. Level 2 raises it to
 # 50 MiB and level 3 to 100 MiB, but assuming the floor means a build that grows
-# past it degrades to a link instead of silently failing to post.
+# past it degrades gracefully instead of silently failing to post.
+#
+# This is a per-GUILD limit, not a per-uploader one: a bot token gets exactly the
+# same ceiling a webhook does, so there is no route around it other than sending
+# fewer bytes.
 DISCORD_MAX_UPLOAD = 10 * 1024 * 1024
 
 RAW_EXE_URL = f"https://raw.githubusercontent.com/{REPO}/{BRANCH}/{quote(FILE_EXE)}"
@@ -194,6 +200,14 @@ def _download_target():
     return None, {}
 
 
+def _zip_bytes(name: str, blob: bytes) -> bytes:
+    """The same bytes, deflated into a one-entry archive, in memory."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+        z.writestr(name, blob)
+    return buf.getvalue()
+
+
 def post_build(blob: Optional[bytes], filename: str, content: str,
                *, dry_run: bool = False) -> bool:
     """Post the build to the download channel, as a file when that is possible.
@@ -209,10 +223,32 @@ def post_build(blob: Optional[bytes], filename: str, content: str,
         return False
 
     attach = blob is not None and len(blob) <= DISCORD_MAX_UPLOAD
+
+    # Over the ceiling: send the same build zipped before giving up on sending
+    # it at all. A link is a poor substitute - people came to the channel for the
+    # file, and raw.githubusercontent hands an unsigned .exe to a browser, which
+    # is the download every browser and AV is most suspicious of.
+    #
+    # An exe packs to a little over half its size: it is mostly padded sections
+    # and embedded font and asset data. v0.61 was 11.1 MB and zips to 6.2, so
+    # this also buys enough headroom that it will not come straight back the next
+    # time the build grows.
     if blob is not None and not attach:
-        log.warning("%s is %s, over Discord's %s limit - posting a link instead",
-                    filename, human_size(len(blob)), human_size(DISCORD_MAX_UPLOAD))
-        content = content + "\n" + RAW_EXE_URL
+        packed = _zip_bytes(filename, blob)
+        if len(packed) <= DISCORD_MAX_UPLOAD:
+            log.info("%s is %s, over Discord's %s limit - posting it zipped (%s)",
+                     filename, human_size(len(blob)),
+                     human_size(DISCORD_MAX_UPLOAD), human_size(len(packed)))
+            blob     = packed
+            filename = filename.rsplit(".", 1)[0] + ".zip"
+            attach   = True
+            content  = content + "  (zipped - Discord caps uploads at " \
+                     + human_size(DISCORD_MAX_UPLOAD) + ")"
+        else:
+            log.warning("%s is %s and still %s zipped, over Discord's %s limit "
+                        "- posting a link instead", filename, human_size(len(blob)),
+                        human_size(len(packed)), human_size(DISCORD_MAX_UPLOAD))
+            content = content + "\n" + RAW_EXE_URL
     elif blob is None:
         content = content + "\n" + RAW_EXE_URL
 
@@ -248,10 +284,16 @@ def post_build(blob: Optional[bytes], filename: str, content: str,
                 log.warning("Discord rate-limited, waiting %.1fs", min(wait, 10))
                 time.sleep(min(wait, 10))
                 continue
-            # 413 means the server's real ceiling is lower than we assumed, so
-            # retry once as a link rather than losing the release post.
+            # 413 means the server's real ceiling is lower than we assumed. If
+            # this was the raw exe there is still the zip to try; if it was
+            # already the zip, a link is all that is left.
             if status == 413 and attach:
-                log.warning("Discord rejected the attachment (413) - retrying as a link")
+                if not filename.endswith(".zip"):
+                    log.warning("Discord rejected the attachment (413) - retrying zipped")
+                    packed = _zip_bytes(filename, blob)
+                    return post_build(packed, filename.rsplit(".", 1)[0] + ".zip",
+                                      content, dry_run=dry_run)
+                log.warning("Discord rejected the zip too (413) - retrying as a link")
                 return post_build(None, filename, content, dry_run=dry_run)
             log.warning("Discord replied with HTTP %d - %s", status, data[:200])
             return False
@@ -580,6 +622,50 @@ def check_once(gh: GitHub, cache: dict) -> None:
     check_releases(gh)
 
 
+def repost_build(gh: "GitHub") -> int:
+    """Put the build that is already live into the download channel again.
+
+    For the case this exists to fix: the upload failed while the announcement
+    and the log entry both went out fine, so the channel points at a release
+    whose file never arrived. Nothing is wrong with the release itself, and
+    bumping the version to re-trigger the post would mean a second @role ping
+    for a build nobody changed.
+
+    Deliberately silent on the announcement webhook. It re-sends the FILE, and
+    only the file.
+    """
+    entries = []
+    try:
+        _, text = gh.load(FILE_RELEASES)
+        entries = (json.loads(text or "{}") or {}).get("releases", []) or []
+    except Exception as e:
+        log.error("could not read %s: %s", FILE_RELEASES, e)
+        return 3
+    if not entries:
+        log.error("%s has no entries - nothing to re-post", FILE_RELEASES)
+        return 3
+
+    last    = entries[-1]
+    version = last.get("version", "?")
+    sha     = last.get("sha", "")
+    size    = int(last.get("size", 0) or 0)
+    if not sha:
+        log.error("the newest entry (%s) has no sha", version)
+        return 3
+
+    log.info("re-posting %s (%s, blob %s)", version, human_size(size), sha[:10])
+    try:
+        blob = gh.blob(sha)
+    except Exception as e:
+        log.error("could not read the build: %s", e)
+        return 3
+
+    ok = post_build(blob, FILE_EXE,
+                    f"**{PRODUCT} {version}**  -  {human_size(len(blob))}",
+                    dry_run=gh.dry_run)
+    return 0 if ok else 1
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Roblox version watcher for the Dopamine loader")
     ap.add_argument("--interval", type=int, default=INTERVAL,
@@ -588,6 +674,9 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true", help="write nothing to GitHub")
     ap.add_argument("--test-discord", action="store_true",
                     help="post one test message to the webhook and exit")
+    ap.add_argument("--post-build", action="store_true",
+                    help="re-post the newest logged build to the download "
+                         "channel and exit (no announcement, no version bump)")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args()
 
@@ -621,6 +710,9 @@ def main() -> int:
 
     cache = load_cache()
     gh = GitHub(REPO, BRANCH, token, args.dry_run)
+
+    if args.post_build:
+        return repost_build(gh)
 
     for path in (FILE_SUPPORTED, FILE_CURRENT, FILE_RELEASES):
         try:
@@ -661,3 +753,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
